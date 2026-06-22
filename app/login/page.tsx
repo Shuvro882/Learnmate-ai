@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { FaEye } from "react-icons/fa6";
 import { IoEyeOff } from "react-icons/io5";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 
 type FormData = {
@@ -15,52 +14,47 @@ type FormData = {
 
 export default function LoginPage() {
   const [show, setShow] = useState(false);
+  const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  const router = useRouter();
   const { signInUser, signInGoogle } = useAuth();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<FormData>();
 
   // EMAIL LOGIN
   const onSubmit = async (data: FormData) => {
+    setSuccess("");
     setError("");
 
     try {
       await signInUser(data.email, data.password);
 
-      alert("Login Successful 🎉");
+      setSuccess("Login successful 🎉");
 
-      router.push("/dashboard"); // change route if needed
-
+      // form clear
+      reset();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Login failed");
     }
   };
 
   // GOOGLE LOGIN
   const handleGoogleSignIn = async () => {
-    setError("");
-
     try {
       await signInGoogle();
-
-      alert("Google Login Successful 🎉");
-
-      router.push("/dashboard");
-
+      setSuccess("Google login successful 🎉");
     } catch (err: any) {
       setError(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center pt-10 px-4
-bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+    <div className="min-h-screen flex items-start justify-center pt-10 px-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
 
       <div className="w-full max-w-md">
         <div className="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-8">
@@ -75,7 +69,13 @@ bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
             </p>
           </div>
 
-          {/* ERROR */}
+          {/* SUCCESS / ERROR */}
+          {success && (
+            <p className="text-green-600 text-sm text-center mb-2">
+              {success}
+            </p>
+          )}
+
           {error && (
             <p className="text-red-500 text-sm text-center mb-2">
               {error}
@@ -130,6 +130,16 @@ bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
               )}
             </div>
 
+            {/* FORGOT PASSWORD */}
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-indigo-600 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             {/* LOGIN BUTTON */}
             <button
               type="submit"
@@ -152,17 +162,18 @@ bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
             type="button"
             className="mt-4 w-full flex items-center justify-center gap-3 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition"
           >
+            {/* Google Icon */}
             <svg
               className="w-5 h-5"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 512 512"
             >
               <g>
-                <path d="m0 0H512V512H0" fill="#fff"></path>
-                <path fill="#34a853" d="M153 292c30 82..." />
-                <path fill="#4285f4" d="m386 400..." />
-                <path fill="#fbbc02" d="m90 341..." />
-                <path fill="#ea4335" d="m153 219..." />
+                <path d="m0 0H512V512H0" fill="#fff" />
+                <path fill="#34a853" d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341" />
+                <path fill="#4285f4" d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57" />
+                <path fill="#fbbc02" d="m90 341a208 200 0 010-171l63 49q-12 37 0 73" />
+                <path fill="#ea4335" d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55" />
               </g>
             </svg>
 
