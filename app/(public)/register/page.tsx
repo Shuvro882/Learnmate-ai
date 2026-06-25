@@ -8,64 +8,78 @@ import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
 
 type FormData = {
+  name: string;
   email: string;
   password: string;
+  role: "student" | "tutor";
 };
 
-export default function LoginPage() {
+export default function Register() {
   const [show, setShow] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  const { signInUser, signInGoogle } = useAuth();
+  const { registerUser, updateUserProfile } = useAuth();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
     reset,
+    formState: { errors },
   } = useForm<FormData>();
 
-  // EMAIL LOGIN
   const onSubmit = async (data: FormData) => {
     setSuccess("");
     setError("");
 
     try {
-      await signInUser(data.email, data.password);
+      const result = await registerUser(data.email, data.password);
+      const user = result.user;
 
-      setSuccess("Login successful 🎉");
+      // 2. Update profile
+      await updateUserProfile({
+        displayName: data.name,
+      });
 
-      // form clear
-      reset();
+      // 3. Save user to MongoDB
+      await fetch("http://localhost:5000/users", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          createdAt: new Date(),
+        }),
+      });
+
+      console.log("REGISTER SUCCESS:", user);
+
+      setSuccess("🎉 Registration successful!");
+
     } catch (err: any) {
-      setError(err.message || "Login failed");
-    }
-  };
-
-  // GOOGLE LOGIN
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInGoogle();
-      setSuccess("Google login successful 🎉");
-    } catch (err: any) {
+      console.log(err.message);
       setError(err.message);
+    }finally{
+      reset();
     }
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center pt-10 px-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+    <div className="min-h-screen flex items-start justify-center pt-12 px-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
 
       <div className="w-full max-w-md">
         <div className="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-8">
 
           {/* TITLE */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">
-              Welcome Back
+              Create Account
             </h1>
             <p className="text-gray-500 mt-2">
-              Login to continue your learning journey
+              Join LearnMate AI and start learning smarter
             </p>
           </div>
 
@@ -85,6 +99,20 @@ export default function LoginPage() {
           {/* FORM */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
+            {/* NAME */}
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <input
+                type="text"
+                placeholder="Your name"
+                {...register("name", { required: true })}
+                className="w-full mt-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm">Name is required</p>
+              )}
+            </div>
+
             {/* EMAIL */}
             <div>
               <label className="text-sm font-medium">Email</label>
@@ -99,6 +127,35 @@ export default function LoginPage() {
               )}
             </div>
 
+            {/* ROLE */}
+            <div>
+              <label className="text-sm font-medium">Role</label>
+
+              <div className="flex gap-4 mt-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    value="student"
+                    {...register("role", { required: true })}
+                  />
+                  Student
+                </label>
+
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    value="tutor"
+                    {...register("role", { required: true })}
+                  />
+                  Tutor
+                </label>
+              </div>
+
+              {errors.role && (
+                <p className="text-red-500 text-sm">Role is required</p>
+              )}
+            </div>
+
             {/* PASSWORD */}
             <div>
               <label className="text-sm font-medium">Password</label>
@@ -106,7 +163,7 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type={show ? "text" : "password"}
-                  placeholder="Enter password"
+                  placeholder="Create password"
                   {...register("password", {
                     required: true,
                     minLength: 6,
@@ -130,66 +187,23 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* FORGOT PASSWORD */}
-            <div className="text-right">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-indigo-600 hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            {/* LOGIN BUTTON */}
+            {/* BUTTON */}
             <button
               type="submit"
               className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
             >
-              Login
+              Create Account
             </button>
           </form>
 
-          {/* DIVIDER */}
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <p className="text-sm text-gray-500">or continue with</p>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
-
-          {/* GOOGLE LOGIN */}
-          <button
-            onClick={handleGoogleSignIn}
-            type="button"
-            className="mt-4 w-full flex items-center justify-center gap-3 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition"
-          >
-            {/* Google Icon */}
-            <svg
-              className="w-5 h-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-            >
-              <g>
-                <path d="m0 0H512V512H0" fill="#fff" />
-                <path fill="#34a853" d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341" />
-                <path fill="#4285f4" d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57" />
-                <path fill="#fbbc02" d="m90 341a208 200 0 010-171l63 49q-12 37 0 73" />
-                <path fill="#ea4335" d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55" />
-              </g>
-            </svg>
-
-            <span className="text-sm font-medium text-gray-700">
-              Login with Google
-            </span>
-          </button>
-
-          {/* REGISTER LINK */}
+          {/* LOGIN LINK */}
           <p className="text-sm text-center mt-6 text-gray-600">
-            Don’t have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="text-indigo-600 font-medium hover:underline"
             >
-              Register
+              Login
             </Link>
           </p>
 

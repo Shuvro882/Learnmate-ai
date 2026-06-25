@@ -1,8 +1,15 @@
 import { createContext } from "react";
-import { User } from "firebase/auth";
+
+type AppUser = {
+  uid: string;
+  email: string | null;
+  displayName?: string;
+  photoURL?: string;
+  role?: "student" | "tutor" | "admin";
+};
 
 type AuthContextType = {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
   registerUser: (email: string, password: string) => Promise<any>;
   signInUser: (email: string, password: string) => Promise<any>;

@@ -1,7 +1,18 @@
 export default function Hero() {
   return (
-    <section className="min-h-[65vh] flex items-center py-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+    <section
+  className="
+    min-h-[65vh]
+    flex
+    items-center
+    py-10
+    bg-gradient-to-r
+    from-indigo-50
+    via-white
+    to-cyan-50
+  "
+>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center w-full px-4">
 
         {/* Left Side */}
         <div>

@@ -11,7 +11,6 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
-  User,
 } from "firebase/auth";
 
 import { auth } from "@/firebase/firebase.init";
@@ -22,53 +21,99 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-export default function AuthProvider({
-  children,
-}: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+export default function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // ---------------------------
   // Register
+  // ---------------------------
   const registerUser = (email: string, password: string) => {
     setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
+  // ---------------------------
   // Login
+  // ---------------------------
   const signInUser = (email: string, password: string) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  // ---------------------------
   // Google Login
+  // ---------------------------
   const signInGoogle = () => {
     setLoading(true);
     return signInWithPopup(auth, googleProvider);
   };
 
+  // ---------------------------
   // Logout
+  // ---------------------------
   const logOut = () => {
     setLoading(true);
     return signOut(auth);
   };
 
-  // ⭐ NEW: Update Profile (THIS FIXES YOUR ERROR)
+  // ---------------------------
+  // Update Profile
+  // ---------------------------
   const updateUserProfile = (profile: { displayName?: string }) => {
-    if (!auth.currentUser) return Promise.reject("No user logged in");
+    if (!auth.currentUser)
+      return Promise.reject("No user logged in");
 
     return updateProfile(auth.currentUser, profile);
   };
 
-  // Auth Observer
+  // ---------------------------
+  // 🔥 MAIN FIX: Firebase + MongoDB merge
+  // ---------------------------
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `http://localhost:5000/users/${currentUser.email}`
+        );
+
+        const dbUser = await res.json();
+
+        setUser({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName || "",
+          photoURL: currentUser.photoURL || "",
+          role: dbUser?.role || "student",
+        });
+      } catch (err) {
+        console.log("Auth merge error:", err);
+
+        // fallback user (still allow login)
+        setUser({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName || "",
+          photoURL: currentUser.photoURL || "",
+          role: "student",
+        });
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
+  // ---------------------------
+  // Context value
+  // ---------------------------
   const authInfo = {
     user,
     loading,
@@ -76,7 +121,7 @@ export default function AuthProvider({
     signInUser,
     signInGoogle,
     logOut,
-    updateUserProfile, 
+    updateUserProfile,
   };
 
   return (

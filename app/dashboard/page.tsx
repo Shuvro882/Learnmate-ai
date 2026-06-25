@@ -1,13 +1,11 @@
-import ProtectedRoute from "../Components/ProtectedRoute";
+export default function DashboardPage() {
+return ( <div> <h1 className="text-3xl font-bold">
+Dashboard Overview </h1>
 
+  <p className="mt-2 text-gray-600">
+    Welcome to LearnMate Dashboard
+  </p>
+</div>
 
-export default function Dashboard() {
-  return (
-    <ProtectedRoute>
-      <div>
-        <h1>Dashboard</h1>
-        <p>This page is protected 🔒</p>
-      </div>
-    </ProtectedRoute>
-  );
+);
 }
