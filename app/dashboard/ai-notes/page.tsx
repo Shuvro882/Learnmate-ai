@@ -29,16 +29,11 @@ export default function AINotesPage() {
       </div>
 
       {/* AI Response Section */}
-      <div className="rounded-xl border p-6 shadow-sm">
-  <h2 className="text-xl font-semibold mb-4">
-    Generated Notes
-  </h2>
-
   <AIResponse
     title="Generated Notes"
     content={response}
   />
-</div>
+
     </div>
   );
 }
