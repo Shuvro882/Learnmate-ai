@@ -1,7 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import AIQuizForm from "@/app/Components/ai/AIQuizForm";
 import AIResponse from "@/app/Components/ai/AIResponse";
 
 export default function AIQuizPage() {
+    const [response, setResponse] = useState("");
     return (
         <div className="space-y-8">
             {/* Page Header */}
@@ -21,24 +25,19 @@ export default function AIQuizPage() {
                     Generate Quiz
                 </h2>
 
-                <AIQuizForm />
+                <AIQuizForm setResponse={setResponse} />
             </div>
 
             {/* Quiz Result Section */}
             <div className="rounded-xl border p-6 shadow-sm">
                 <h2 className="text-xl font-semibold mb-4">
-                    <AIResponse
-                        title="Generated Notes"
-                        content=""
-                    />
+                    Generated Quiz
                 </h2>
 
-                {/* পরে এখানে Quiz Response Component বসবে */}
-                <div className="h-72 flex items-center justify-center border border-dashed rounded-lg">
-                    <p className="text-gray-500">
-                        AI generated quiz will appear here.
-                    </p>
-                </div>
+                <AIResponse
+                    title="Generated Quiz"
+                    content={response}
+                />
             </div>
         </div>
     );
